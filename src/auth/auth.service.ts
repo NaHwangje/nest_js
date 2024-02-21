@@ -4,6 +4,7 @@ import { UsersModel } from 'src/users/entities/user.entity';
 import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -58,17 +59,21 @@ export class AuthService {
    * 토큰 검증
    */
   varifyToken(token: string) {
-    return this.jwtService.verify(token, {
-      secret: JWT_SECRET,
-    });
+    try {
+      return this.jwtService.verify(token, {
+        secret: JWT_SECRET,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('토큰이 만료됐거나 잘못된 토큰입니다.');
+    }
   }
 
   /**
    * 토큰 재발급
    */
-  rotateToken(token: string, isRefreshToken: boolean){
+  rotateToken(token: string, isRefreshToken: boolean) {
     const decoded = this.jwtService.verify(token, {
-        secret: JWT_SECRET,
+      secret: JWT_SECRET,
     });
 
     /**
@@ -77,12 +82,17 @@ export class AuthService {
      * type: 'access' | 'refresh'
      */
     if (decoded.type !== 'refresh') {
-        throw new UnauthorizedException('토큰 재발급은 Refresh 토큰으로만 가능합니다.')
+      throw new UnauthorizedException(
+        '토큰 재발급은 Refresh 토큰으로만 가능합니다.',
+      );
     }
 
-    return this.signToken({
+    return this.signToken(
+      {
         ...decoded,
-    }, isRefreshToken);
+      },
+      isRefreshToken,
+    );
   }
 
   /**
@@ -164,7 +174,7 @@ export class AuthService {
     };
   }
 
-  async athenticateWithEmailAndPassword(
+  async authenticateWithEmailAndPassword(
     user: Pick<UsersModel, 'email' | 'password'>,
   ) {
     /**
@@ -194,19 +204,19 @@ export class AuthService {
   }
 
   async loginWithEmail(user: Pick<UsersModel, 'email' | 'password'>) {
-    const existingUser = await this.athenticateWithEmailAndPassword(user);
+    const existingUser = await this.authenticateWithEmailAndPassword(user);
 
     return this.loginUser(existingUser);
   }
 
-  async registerWithEmail(
-    user: Pick<UsersModel, 'nickname' | 'email' | 'password'>,
-  ) {
+  async registerWithEmail(user: RegisterUserDto) {
     const hash = await bcrypt.hash(user.password, HASH_ROUNDS);
+
     const newUser = await this.usersService.createUser({
       ...user,
       password: hash,
     });
+    
     return this.loginUser(newUser);
   }
 }

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { IsString } from 'class-validator';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { UsersModel } from 'src/users/entities/user.entity';
 import {
@@ -20,10 +21,17 @@ export class PostsModel extends BaseModel{
   })
   author: UsersModel;
 
+
   @Column()
+  @IsString({
+    message: 'title은 string 타입을 입력해줘야합니다.',
+  })
   title: string;
 
   @Column()
+  @IsString({
+    message: 'content는 string 타입을 입력해줘야합니다.',
+  })
   content: string;
 
   @Column()

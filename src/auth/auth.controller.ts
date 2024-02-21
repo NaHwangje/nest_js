@@ -1,12 +1,16 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MaxLengthPipe, MinLenghtPipe, PasswordPipe } from './pipe/password.pioe';
+import { MaxLengthPipe, MinLenghtPipe, PasswordPipe } from './pipe/password.pipe';
+import { BasicTokenGuard } from './guard/basic-token.guard';
+import { AccessTokenGuard, RefreshTokenGuard } from './guard/bearer-token.guard';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('token/access')
+  @UseGuards(RefreshTokenGuard)
   postTokenAccess(
     @Headers('authorization') rawToken: string
   ){
@@ -23,6 +27,7 @@ export class AuthController {
   }
 
   @Post('token/refresh')
+  @UseGuards(RefreshTokenGuard)
   postTokenRefresh(
     @Headers('authorization') rawToken: string
   ){
@@ -39,8 +44,10 @@ export class AuthController {
   }
 
   @Post('login/email')
+  @UseGuards(BasicTokenGuard)
   postLoginEmail(
     @Headers('authorization') rawToken: string, 
+    @Request() req
     ) {
       // email: password -> Base64
       // asdflkjasjhdfjklhas -> email:password
@@ -53,14 +60,11 @@ export class AuthController {
 
   @Post('register/email')
   postRegisterEmail(
-    @Body('nickname') nickname: string,
-    @Body('email') email: string,
-    @Body('password', new MaxLengthPipe(8), new MinLenghtPipe(3)) password: string,
+    @Body()body:RegisterUserDto
+    // @Body('nickname') nickname: string,
+    // @Body('email') email: string,
+    // @Body('password', new MaxLengthPipe(8), new MinLenghtPipe(3)) password: string,
   ) {
-    return this.authService.registerWithEmail({
-      email,
-      password,
-      nickname,
-    });
+    return this.authService.registerWithEmail(body);
   }
 }
