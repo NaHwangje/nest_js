@@ -64,9 +64,9 @@ export class UsersModel extends BaseModel {
    * toClassOnly -> class instance로 변환될때만
    * toPlainOnly -> plain object로 변환될때만
    */
-  // @Exclude({
-  //   toPlainOnly: true,
-  // })
+  @Exclude({
+    toPlainOnly: true,
+  })
   password: string;
 
   @Column({

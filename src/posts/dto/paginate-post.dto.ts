@@ -4,7 +4,6 @@ import { IsIn, IsNumber, IsOptional } from "class-validator";
 export class PaginatePostDto{
     // 이전 마지막 데이터의 ID
     // 이 프로퍼티에 입력된 ID 보다 높은 ID 부터 값을 가져오기
-    @Type(()=> Number)
     @IsNumber()
     @IsOptional()
     where__id_more_than?: number;
